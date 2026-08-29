@@ -13,7 +13,9 @@ const users = require("../initial-data/users.json");
 const brands = require("../initial-data/brands.json");
 const products = require("../initial-data/products.json");
 
-authenticate = (req, res, next) => {
+let cart = [];
+
+const authenticate = (req, res, next) => {
   try {
     const token = req.headers.authorization.split(" ")[1];
     const decoded = jwt.verify(token, "yoursecretkey");
@@ -48,12 +50,37 @@ app.post("/api/login", (req, res) => {
     });
   }
 
-  const token = jwt.sign({ userId: user.id }, "yoursecretkey");
+  const token = jwt.sign({ userId: user.login.username }, "yoursecretkey");
 
   res.status(200).json({
     message: "Auth successful",
     token: token,
   });
+});
+
+//Add to the cart
+app.post("/api/addToCart", authenticate, (req, res) => {
+  const { productId, quantity } = req.body;
+
+  const product = products.find((product) => product.id == productId);
+
+  if (!product) {
+    return res.status(404).json({
+      message: "Product not found",
+    });
+  }
+
+  cart.push({
+    productId: product.id,
+    quantity: quantity,
+  });
+
+  res.status(200).json(cart);
+});
+
+//Retrieve the cart
+app.get("/api/getCart", authenticate, (req, res) => {
+  res.status(200).json(cart);
 });
 
 // Error handling

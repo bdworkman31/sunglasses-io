@@ -61,4 +61,34 @@ describe("Login", () => {
 });
 
 // Test for GET /api/me.cart
-describe("Cart", () => {});
+describe("Cart", () => {
+  let token;
+
+  before((done) => {
+    chai
+      .request(server)
+      .post("/api/login")
+      .send({
+        username: "greenlion235",
+        password: "waters",
+      })
+      .end((err, res) => {
+        token = res.body.token;
+        done();
+      });
+  });
+
+  it("it should retreive the cart", (done) => {
+    chai
+      .request(server)
+      .get("/api/getCart")
+      .set("Authorization", `Bearer ${token}`)
+      .end((err, res) => {
+        console.log(res.status);
+        console.log(res.body);
+        res.should.have.status(200);
+        res.body.should.be.an("array");
+        done();
+      });
+  });
+});
