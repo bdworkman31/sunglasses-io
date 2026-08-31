@@ -60,7 +60,43 @@ describe("Login", () => {
   });
 });
 
-// Test for GET /api/me.cart
+// Test to add to cart
+describe("Add to Cart", () => {
+  before((done) => {
+    chai
+      .request(server)
+      .post("/api/login")
+      .send({
+        username: "greenlion235",
+        password: "waters",
+      })
+      .end((err, res) => {
+        token = res.body.token;
+        done();
+      });
+  });
+
+  it("it should add an item to the cart", (done) => {
+    chai
+      .request(server)
+      .post("/api/addToCart")
+      .set("Authorization", `Bearer ${token}`)
+      .send(
+        {
+          productId: 5,
+          quantity: 20,
+        },
+        { productId: 8, quantity: 30 },
+      )
+      .end((err, res) => {
+        res.should.have.status(200);
+        res.body.should.be.a("array");
+        done();
+      });
+  });
+});
+
+// Test for GET /api/mycart
 describe("Cart", () => {
   let token;
 
@@ -81,13 +117,27 @@ describe("Cart", () => {
   it("it should retreive the cart", (done) => {
     chai
       .request(server)
-      .get("/api/getCart")
+      .get("/api/myCart")
       .set("Authorization", `Bearer ${token}`)
       .end((err, res) => {
         console.log(res.status);
         console.log(res.body);
         res.should.have.status(200);
         res.body.should.be.an("array");
+        done();
+      });
+  });
+});
+
+//Get products based on id
+describe("Brand Products per ID", () => {
+  it("should return products for a specific brand", (done) => {
+    chai
+      .request(server)
+      .get("/api/brands/1/products")
+      .end((err, res) => {
+        res.should.have.status(200);
+        // res.body.should.be.a("array");
         done();
       });
   });

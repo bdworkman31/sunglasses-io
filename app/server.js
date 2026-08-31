@@ -32,6 +32,15 @@ app.get("/api/brands", (req, res) => {
   res.status(200).json(brands);
 });
 
+//Get list of products based on ID
+app.get("/api/brands/:id/products", (req, res) => {
+  const id = req.params.id;
+
+  res.status(200).json({
+    brandId: id,
+  });
+});
+
 //Login
 app.post("/api/login", (req, res) => {
   const { username, password } = req.body;
@@ -79,7 +88,7 @@ app.post("/api/addToCart", authenticate, (req, res) => {
 });
 
 //Retrieve the cart
-app.get("/api/getCart", authenticate, (req, res) => {
+app.get("/api/mycart", authenticate, (req, res) => {
   res.status(200).json(cart);
 });
 
