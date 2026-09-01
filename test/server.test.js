@@ -23,6 +23,20 @@ describe("Brands", () => {
   });
 });
 
+//Get products based on id
+describe("Brand Products per ID", () => {
+  it("should return products for a specific brand", (done) => {
+    chai
+      .request(server)
+      .get("/api/brands/1/products")
+      .end((err, res) => {
+        res.should.have.status(200);
+
+        done();
+      });
+  });
+});
+
 //Test for POST /api/login
 describe("Login", () => {
   it("it should test if a user successfully logs in", (done) => {
@@ -97,48 +111,78 @@ describe("Add to Cart", () => {
 });
 
 // Test for GET /api/mycart
-describe("Cart", () => {
+describe("Get cart", () => {
   let token;
 
-  before((done) => {
-    chai
-      .request(server)
-      .post("/api/login")
-      .send({
-        username: "greenlion235",
-        password: "waters",
-      })
-      .end((err, res) => {
-        token = res.body.token;
-        done();
-      });
+  before(async () => {
+    const res = await chai.request(server).post("/api/login").send({
+      username: "greenlion235",
+      password: "waters",
+    });
+
+    token = res.body.token;
   });
 
-  it("it should retreive the cart", (done) => {
-    chai
+  it("it should retrieve the cart", async () => {
+    const res = await chai
       .request(server)
       .get("/api/myCart")
-      .set("Authorization", `Bearer ${token}`)
-      .end((err, res) => {
-        console.log(res.status);
-        console.log(res.body);
-        res.should.have.status(200);
-        res.body.should.be.an("array");
+      .set("Authorization", `Bearer ${token}`);
+
+    res.should.have.status(200);
+    res.body.should.be.an("array");
+  });
+});
+
+//Delete from cart
+describe("Delete an item from cart", () => {
+  it("it should delete an item from the cart", (done) => {
+    const cartItem = {
+      productId: 20,
+      quantity: 2,
+    };
+
+    chai
+      .request(server)
+      .post("/api/myCart")
+      .send(cartItem)
+      .end((err, postRes) => {
+        chai
+          .request(server)
+          .delete("/api/cart/delete/:id")
+          .send(cartItem)
+          .end((err, res) => {
+            res.should.have.status(200);
+          });
         done();
       });
   });
 });
 
-//Get products based on id
-describe("Brand Products per ID", () => {
-  it("should return products for a specific brand", (done) => {
+//Test to update quantity
+
+describe("Update Cart Quantity", () => {
+  it("it should update the cart quantity", (done) => {
+    const cartProduct = {
+      productId: 1,
+      quantity: 1,
+    };
+
     chai
       .request(server)
-      .get("/api/brands/1/products")
-      .end((err, res) => {
-        res.should.have.status(200);
-        // res.body.should.be.a("array");
-        done();
+      .post("/api/myCart")
+      .send(cartProduct)
+      .end((err, postRes) => {
+        chai
+          .request(server)
+          .put("/api/cart/productQuantity/:id")
+          .send({
+            quantity: 100,
+          })
+          .end((err, res) => {
+            res.should.have.status(200);
+          });
       });
+    done();
   });
 });

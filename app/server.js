@@ -87,9 +87,42 @@ app.post("/api/addToCart", authenticate, (req, res) => {
   res.status(200).json(cart);
 });
 
+//Update Quantity in Cart
+app.put("/api/cart/productQuantity/:id", (req, res) => {
+  const id = req.params.id;
+  const quantity = req.body.quantity;
+
+  const cartProduct = cart.find((product) => product.productId == id);
+
+  if (!cartProduct) {
+    return res.status(404).json({
+      message: "Product not found in cart",
+    });
+  }
+
+  cartProduct.quantity = quantity;
+
+  res.status(200).json(cart);
+});
+
 //Retrieve the cart
 app.get("/api/mycart", authenticate, (req, res) => {
   res.status(200).json(cart);
+});
+
+//Delete an item from the cart
+app.delete("/api/cart/delete/:id", (req, res) => {
+  const id = req.params.id;
+
+  const newCart = cart.filter((product) => product.productId != id);
+
+  if (!newCart) {
+    return res.status(404).json({
+      message: "Product not found in cart",
+    });
+  }
+
+  res.status(200).json(newCart);
 });
 
 // Error handling
