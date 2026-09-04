@@ -14,6 +14,7 @@ const brands = require("../initial-data/brands.json");
 const products = require("../initial-data/products.json");
 
 let cart = [];
+let subscribedEmails = [];
 
 const authenticate = (req, res, next) => {
   try {
@@ -88,7 +89,7 @@ app.post("/api/addToCart", authenticate, (req, res) => {
 });
 
 //Update Quantity in Cart
-app.put("/api/cart/productQuantity/:id", (req, res) => {
+app.put("/api/cart/productQuantity/:id", authenticate, (req, res) => {
   const id = req.params.id;
   const quantity = req.body.quantity;
 
@@ -111,18 +112,29 @@ app.get("/api/mycart", authenticate, (req, res) => {
 });
 
 //Delete an item from the cart
-app.delete("/api/cart/delete/:id", (req, res) => {
+app.delete("/api/cart/delete/:id", authenticate, (req, res) => {
   const id = req.params.id;
 
-  const newCart = cart.filter((product) => product.productId != id);
+  const cartProduct = cart.find((product) => product.productId == id);
 
-  if (!newCart) {
+  if (!cartProduct) {
     return res.status(404).json({
       message: "Product not found in cart",
     });
   }
 
-  res.status(200).json(newCart);
+  cart = cart.filter((product) => product.productId != id);
+
+  res.status(200).json(cart);
+});
+
+//Subscribe
+app.post("/api/subscribe", (req, res) => {
+  const newEmail = req.body.email;
+
+  subscribedEmails.push(newEmail);
+
+  res.status(200).json(subscribedEmails);
 });
 
 // Error handling

@@ -76,6 +76,8 @@ describe("Login", () => {
 
 // Test to add to cart
 describe("Add to Cart", () => {
+  let token;
+
   before((done) => {
     chai
       .request(server)
@@ -95,13 +97,10 @@ describe("Add to Cart", () => {
       .request(server)
       .post("/api/addToCart")
       .set("Authorization", `Bearer ${token}`)
-      .send(
-        {
-          productId: 5,
-          quantity: 20,
-        },
-        { productId: 8, quantity: 30 },
-      )
+      .send({
+        productId: 5,
+        quantity: 20,
+      })
       .end((err, res) => {
         res.should.have.status(200);
         res.body.should.be.a("array");
@@ -136,25 +135,51 @@ describe("Get cart", () => {
 
 //Delete from cart
 describe("Delete an item from cart", () => {
+  let token;
+
+  before((done) => {
+    chai
+      .request(server)
+      .post("/api/login")
+      .send({
+        username: "greenlion235",
+        password: "waters",
+      })
+      .end((err, res) => {
+        token = res.body.token;
+        done();
+      });
+  });
   it("it should delete an item from the cart", (done) => {
     const cartItem = {
-      productId: 20,
+      productId: 5,
       quantity: 2,
     };
 
     chai
       .request(server)
-      .post("/api/myCart")
+      .post("/api/addToCart")
+      .set("Authorization", `Bearer ${token}`)
       .send(cartItem)
       .end((err, postRes) => {
+        postRes.should.have.status(200);
+
         chai
           .request(server)
-          .delete("/api/cart/delete/:id")
+          .delete("/api/cart/delete/" + cartItem.productId)
+          .set("Authorization", `Bearer ${token}`)
           .send(cartItem)
           .end((err, res) => {
             res.should.have.status(200);
+            res.body.should.be.an("array");
+
+            const deletedItem = res.body.find(
+              (item) => item.productId == cartItem.productId,
+            );
+
+            should.not.exist(deletedItem);
+            done();
           });
-        done();
       });
   });
 });
@@ -162,6 +187,21 @@ describe("Delete an item from cart", () => {
 //Test to update quantity
 
 describe("Update Cart Quantity", () => {
+  let token;
+
+  before((done) => {
+    chai
+      .request(server)
+      .post("/api/login")
+      .send({
+        username: "greenlion235",
+        password: "waters",
+      })
+      .end((err, res) => {
+        token = res.body.token;
+        done();
+      });
+  });
   it("it should update the cart quantity", (done) => {
     const cartProduct = {
       productId: 1,
@@ -170,19 +210,49 @@ describe("Update Cart Quantity", () => {
 
     chai
       .request(server)
-      .post("/api/myCart")
+      .post("/api/addToCart")
+      .set("Authorization", `Bearer ${token}`)
       .send(cartProduct)
       .end((err, postRes) => {
+        postRes.should.have.status(200);
         chai
           .request(server)
-          .put("/api/cart/productQuantity/:id")
+          .put(`/api/cart/productQuantity/${cartProduct.productId}`)
+          .set("Authorization", `Bearer ${token}`)
           .send({
             quantity: 100,
           })
           .end((err, res) => {
             res.should.have.status(200);
+            res.body.should.be.an("array");
+
+            const updatedProduct = res.body.find(
+              (item) => item.productId == cartProduct.productId,
+            );
+
+            updatedProduct.should.exist;
+            updatedProduct.quantity.should.equal(100);
           });
+        done();
       });
+  });
+});
+
+//Subscribe
+describe("Subscribe with email", () => {
+  it("it should subscribe when email is entered", (done) => {
+    const emailToAdd = "bworkman@gmail.com";
+
+    chai
+      .request(server)
+      .post("/api/subscribe")
+      .send({ email: emailToAdd })
+      .end((err, res) => {
+        res.should.have.status(200);
+        res.body.should.be.an("array");
+        res.body.should.include(emailToAdd);
+      });
+
     done();
   });
 });
