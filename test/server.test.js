@@ -1,14 +1,38 @@
 const chai = require("chai");
 const chaiHttp = require("chai-http");
-const server = require("../app/server"); // Adjust the path as needed
+const server = require("../app/server"); 
 const brands = require("../initial-data/brands.json");
 
 const should = chai.should();
 chai.use(chaiHttp);
 
-// TODO: Write tests for the server
+describe("Search Glasses", () => {
+  it("it should fail with a name is not contained in the products json file", (done) => {
+    chai
+      .request(server)
+      .get("/api/glassesSearch")
+      .query({ name: "xxxxxxxxxxxx" })
+      .end((err, res) => {
+        res.should.have.status(404);
+        res.body.should.have.property("message").equal("Glasses not found!");
+        done();
+      });
+  });
 
-//Test for GET /api/brands
+  it("it should pass with a name that is in the products json file", (done) => {
+    chai
+      .request(server)
+      .get("/api/glassesSearch")
+      .query({ name: "Habanero" })
+      .end((err, res) => {
+        res.should.have.status(200);
+        res.body.should.have.property("name").equal("Habanero");
+        done();
+      });
+  });
+});
+
+
 describe("Brands", () => {
   it("it should return all brands from brands.json ", (done) => {
     chai
@@ -23,7 +47,7 @@ describe("Brands", () => {
   });
 });
 
-//Get products based on id
+
 describe("Brand Products per ID", () => {
   it("should return products for a specific brand", (done) => {
     chai
@@ -37,7 +61,7 @@ describe("Brand Products per ID", () => {
   });
 });
 
-//Test for POST /api/login
+
 describe("Login", () => {
   it("it should test if a user successfully logs in", (done) => {
     chai
@@ -74,7 +98,7 @@ describe("Login", () => {
   });
 });
 
-// Test to add to cart
+
 describe("Add to Cart", () => {
   let token;
 
@@ -109,7 +133,7 @@ describe("Add to Cart", () => {
   });
 });
 
-// Test for GET /api/mycart
+
 describe("Get cart", () => {
   let token;
 
@@ -133,7 +157,7 @@ describe("Get cart", () => {
   });
 });
 
-//Delete from cart
+
 describe("Delete an item from cart", () => {
   let token;
 
@@ -184,7 +208,6 @@ describe("Delete an item from cart", () => {
   });
 });
 
-//Test to update quantity
 
 describe("Update Cart Quantity", () => {
   let token;
@@ -238,7 +261,7 @@ describe("Update Cart Quantity", () => {
   });
 });
 
-//Subscribe
+
 describe("Subscribe with email", () => {
   it("it should subscribe when email is entered", (done) => {
     const emailToAdd = "bworkman@gmail.com";
