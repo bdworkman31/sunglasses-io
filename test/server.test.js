@@ -1,6 +1,6 @@
 const chai = require("chai");
 const chaiHttp = require("chai-http");
-const server = require("../app/server"); 
+const server = require("../app/server");
 const brands = require("../initial-data/brands.json");
 
 const should = chai.should();
@@ -32,7 +32,6 @@ describe("Search Glasses", () => {
   });
 });
 
-
 describe("Brands", () => {
   it("it should return all brands from brands.json ", (done) => {
     chai
@@ -47,7 +46,6 @@ describe("Brands", () => {
   });
 });
 
-
 describe("Brand Products per ID", () => {
   it("should return products for a specific brand", (done) => {
     chai
@@ -60,7 +58,6 @@ describe("Brand Products per ID", () => {
       });
   });
 });
-
 
 describe("Login", () => {
   it("it should test if a user successfully logs in", (done) => {
@@ -98,7 +95,6 @@ describe("Login", () => {
   });
 });
 
-
 describe("Add to Cart", () => {
   let token;
 
@@ -133,7 +129,6 @@ describe("Add to Cart", () => {
   });
 });
 
-
 describe("Get cart", () => {
   let token;
 
@@ -156,7 +151,6 @@ describe("Get cart", () => {
     res.body.should.be.an("array");
   });
 });
-
 
 describe("Delete an item from cart", () => {
   let token;
@@ -207,7 +201,6 @@ describe("Delete an item from cart", () => {
       });
   });
 });
-
 
 describe("Update Cart Quantity", () => {
   let token;
@@ -261,7 +254,6 @@ describe("Update Cart Quantity", () => {
   });
 });
 
-
 describe("Subscribe with email", () => {
   it("it should subscribe when email is entered", (done) => {
     const emailToAdd = "bworkman@gmail.com";
@@ -279,3 +271,51 @@ describe("Subscribe with email", () => {
     done();
   });
 });
+
+describe("List Articles", () => {
+  it("it should return the list of articles when the links are clicked", (done) => {
+    chai
+      .request(server)
+      .get("/api/articles")
+      .end((err, res) => {
+        res.should.have.status(200);
+        res.body.should.be.an("array");
+        done();
+      });
+
+    
+  });
+
+  
+});
+
+describe("Return a specific article", () => {
+  it("it should return a specific article when the link for an article is clicked", (done) => {
+    chai
+      .request(server)
+      .get("/api/articles/2")
+      .end((err, res) => {
+        res.should.have.status(200);
+        res.should.be.an("object")
+        res.body.should.include("Buenas Cosas")
+         done();
+      });
+   
+
+  });
+
+    it("it should fail if the article is not found (i.e. no longer exists)", (done) => {
+      chai
+        .request(server)
+        .get("/api/articles/5")
+        .end((err, res) => {
+          res.should.have.status(404);
+          
+           done();
+        });
+
+        
+    });
+
+    
+  });

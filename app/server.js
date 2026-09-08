@@ -15,6 +15,12 @@ const products = require("../initial-data/products.json");
 let cart = [];
 let subscribedEmails = [];
 
+const articles = [
+  { id: 1, title: "How to repair broken sunglasses", content: ".............." },
+  { id: 2, title: "What determines the quality in a pair of glasses?", content: "Buenas Cosas" },
+  { id: 3, title: "Top glass brands", content: ".............." },
+];
+
 const authenticate = (req, res, next) => {
   try {
     const token = req.headers.authorization.split(" ")[1];
@@ -138,6 +144,23 @@ app.post("/api/subscribe", (req, res) => {
 
   res.status(200).json(subscribedEmails);
 });
+
+app.get("/api/articles", (req, res) => {
+  
+
+res.status(200).json(articles);
+});
+
+app.get("/api/articles/:id", (req, res) => { 
+  const article = articles.find((article) => article.id == req.params.id)
+
+  if (!article) {
+    return res.status(404).json({ message: "Article not found!" });
+  }
+
+  res.status(200).json(article.content);
+
+})
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
