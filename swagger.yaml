@@ -212,6 +212,40 @@ paths:
           schema:
             $ref: "#/definitions/Error"
 
+  /articles:
+    get:
+      summary: "Get all articles"
+      responses:
+        200:
+          description: "A list of all articles"
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Article"
+        404:
+          description: "Articles not found"
+          schema:
+            $ref: "#/definitions/Error"
+
+  /articles/{id}:
+    get:
+      summary: "Get an article by ID"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+          description: "Article ID"
+      responses:
+        200:
+          description: "Article successfully found"
+          schema:
+            $ref: "#/definitions/Article"
+        404:
+          description: "Article not found"
+          schema:
+            $ref: "#/definitions/Error"
+
 definitions:
   Brand:
     type: object
@@ -284,6 +318,16 @@ definitions:
       email:
         type: string
         format: email
+
+  Article:
+    type: object
+    properties:
+      id:
+        type: integer
+      title:
+        type: string
+      content:
+        type: string
 
   Error:
     type: object
