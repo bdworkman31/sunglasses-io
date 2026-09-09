@@ -2,6 +2,7 @@ const chai = require("chai");
 const chaiHttp = require("chai-http");
 const server = require("../app/server");
 const brands = require("../initial-data/brands.json");
+const products = require("../initial-data/products.json");
 
 const should = chai.should();
 chai.use(chaiHttp);
@@ -54,6 +55,20 @@ describe("Brand Products per ID", () => {
       .end((err, res) => {
         res.should.have.status(200);
 
+        done();
+      });
+  });
+});
+
+describe("Products", () => {
+  it("should return all products", (done) => {
+    chai
+      .request(server)
+      .get("/api/products")
+      .end((err, res) => {
+        res.should.have.status(200);
+        res.body.should.be.an("array");
+        res.body.should.deep.equal(products);
         done();
       });
   });
@@ -115,7 +130,7 @@ describe("Add to Cart", () => {
   it("it should add an item to the cart", (done) => {
     chai
       .request(server)
-      .post("/api/addToCart")
+      .post("/api/me/cart")
       .set("Authorization", `Bearer ${token}`)
       .send({
         productId: 5,
@@ -141,10 +156,10 @@ describe("Get cart", () => {
     token = res.body.token;
   });
 
-  it("it should retrieve the cart", async () => {
+  it("should retrieve the cart", async () => {
     const res = await chai
       .request(server)
-      .get("/api/myCart")
+      .get("/api/me/cart")
       .set("Authorization", `Bearer ${token}`);
 
     res.should.have.status(200);
@@ -176,7 +191,7 @@ describe("Delete an item from cart", () => {
 
     chai
       .request(server)
-      .post("/api/addToCart")
+      .post("/api/me/cart")
       .set("Authorization", `Bearer ${token}`)
       .send(cartItem)
       .end((err, postRes) => {
@@ -184,7 +199,7 @@ describe("Delete an item from cart", () => {
 
         chai
           .request(server)
-          .delete("/api/cart/delete/" + cartItem.productId)
+          .delete("/api/me/cart/" + cartItem.productId)
           .set("Authorization", `Bearer ${token}`)
           .send(cartItem)
           .end((err, res) => {
@@ -226,14 +241,14 @@ describe("Update Cart Quantity", () => {
 
     chai
       .request(server)
-      .post("/api/addToCart")
+      .post("/api/me/cart")
       .set("Authorization", `Bearer ${token}`)
       .send(cartProduct)
       .end((err, postRes) => {
         postRes.should.have.status(200);
         chai
           .request(server)
-          .put(`/api/cart/productQuantity/${cartProduct.productId}`)
+          .post(`/api/me/cart/${cartProduct.productId}`)
           .set("Authorization", `Bearer ${token}`)
           .send({
             quantity: 100,
@@ -248,8 +263,8 @@ describe("Update Cart Quantity", () => {
 
             updatedProduct.should.exist;
             updatedProduct.quantity.should.equal(100);
+            done();
           });
-        done();
       });
   });
 });
@@ -266,9 +281,8 @@ describe("Subscribe with email", () => {
         res.should.have.status(200);
         res.body.should.be.an("array");
         res.body.should.include(emailToAdd);
+        done();
       });
-
-    done();
   });
 });
 
@@ -282,11 +296,7 @@ describe("List Articles", () => {
         res.body.should.be.an("array");
         done();
       });
-
-    
   });
-
-  
 });
 
 describe("Return a specific article", () => {
@@ -296,26 +306,20 @@ describe("Return a specific article", () => {
       .get("/api/articles/2")
       .end((err, res) => {
         res.should.have.status(200);
-        res.should.be.an("object")
-        res.body.should.include("Buenas Cosas")
-         done();
+        res.body.should.be.a("string");
+        res.body.should.include("Buenas Cosas");
+        done();
       });
-   
-
   });
 
-    it("it should fail if the article is not found (i.e. no longer exists)", (done) => {
-      chai
-        .request(server)
-        .get("/api/articles/5")
-        .end((err, res) => {
-          res.should.have.status(404);
-          
-           done();
-        });
+  it("it should fail if the article is not found (i.e. no longer exists)", (done) => {
+    chai
+      .request(server)
+      .get("/api/articles/5")
+      .end((err, res) => {
+        res.should.have.status(404);
 
-        
-    });
-
-    
+        done();
+      });
   });
+});

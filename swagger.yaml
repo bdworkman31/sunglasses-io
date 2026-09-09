@@ -88,7 +88,7 @@ paths:
           schema:
             $ref: "#/definitions/Error"
 
-  /myCart:
+  /cart:
     get:
       summary: "Get all items in the cart"
       security:
@@ -105,7 +105,7 @@ paths:
           schema:
             $ref: "#/definitions/Error"
 
-  /addToCart:
+  /me/cart:
     post:
       summary: "Add an item to the cart"
       security:

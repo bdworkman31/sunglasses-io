@@ -11,15 +11,11 @@ app.use(bodyParser.json());
 const users = require("../initial-data/users.json");
 const brands = require("../initial-data/brands.json");
 const products = require("../initial-data/products.json");
+const articles = require("../initial-data/articles.json")
 
 let cart = [];
 let subscribedEmails = [];
 
-const articles = [
-  { id: 1, title: "How to repair broken sunglasses", content: ".............." },
-  { id: 2, title: "What determines the quality in a pair of glasses?", content: "Buenas Cosas" },
-  { id: 3, title: "Top glass brands", content: ".............." },
-];
 
 const authenticate = (req, res, next) => {
   try {
@@ -51,9 +47,23 @@ app.get("/api/brands", (req, res) => {
 app.get("/api/brands/:id/products", (req, res) => {
   const id = req.params.id;
 
-  res.status(200).json({
-    brandId: id,
-  });
+  const brand = brands.find((brand) => brand.id == id);
+
+  if (!brand) {
+    return res.status(404).json({
+      message: "Brand not found",
+    });
+  }
+
+  const brandProducts = products.filter(
+    (product) => product.brandId == id
+  );
+
+  return res.status(200).json(brandProducts);
+});
+
+app.get("/api/products", (req, res) => {
+  res.status(200).json(products);
 });
 
 app.post("/api/login", (req, res) => {
@@ -81,7 +91,7 @@ app.post("/api/login", (req, res) => {
   });
 });
 
-app.post("/api/addToCart", authenticate, (req, res) => {
+app.post("/api/me/cart", authenticate, (req, res) => {
   const { productId, quantity } = req.body;
 
   const product = products.find((product) => product.id == productId);
@@ -100,8 +110,8 @@ app.post("/api/addToCart", authenticate, (req, res) => {
   res.status(200).json(cart);
 });
 
-app.put("/api/cart/productQuantity/:id", authenticate, (req, res) => {
-  const id = req.params.id;
+app.post("/api/me/cart/:productId", authenticate, (req, res) => {
+  const id = req.params.productId;
   const quantity = req.body.quantity;
 
   const cartProduct = cart.find((product) => product.productId == id);
@@ -117,12 +127,12 @@ app.put("/api/cart/productQuantity/:id", authenticate, (req, res) => {
   res.status(200).json(cart);
 });
 
-app.get("/api/mycart", authenticate, (req, res) => {
+app.get("/api/me/cart", authenticate, (req, res) => {
   res.status(200).json(cart);
 });
 
-app.delete("/api/cart/delete/:id", authenticate, (req, res) => {
-  const id = req.params.id;
+app.delete("/api/me/cart/:productId", authenticate, (req, res) => {
+  const id = req.params.productId;
 
   const cartProduct = cart.find((product) => product.productId == id);
 
@@ -146,21 +156,18 @@ app.post("/api/subscribe", (req, res) => {
 });
 
 app.get("/api/articles", (req, res) => {
-  
-
-res.status(200).json(articles);
+  res.status(200).json(articles);
 });
 
-app.get("/api/articles/:id", (req, res) => { 
-  const article = articles.find((article) => article.id == req.params.id)
+app.get("/api/articles/:id", (req, res) => {
+  const article = articles.find((article) => article.id == req.params.id);
 
   if (!article) {
     return res.status(404).json({ message: "Article not found!" });
   }
 
   res.status(200).json(article.content);
-
-})
+});
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
