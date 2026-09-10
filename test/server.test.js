@@ -60,19 +60,7 @@ describe("Brand Products per ID", () => {
   });
 });
 
-describe("Products", () => {
-  it("should return all products", (done) => {
-    chai
-      .request(server)
-      .get("/api/products")
-      .end((err, res) => {
-        res.should.have.status(200);
-        res.body.should.be.an("array");
-        res.body.should.deep.equal(products);
-        done();
-      });
-  });
-});
+
 
 describe("Login", () => {
   it("it should test if a user successfully logs in", (done) => {

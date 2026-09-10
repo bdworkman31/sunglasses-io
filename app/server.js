@@ -62,9 +62,6 @@ app.get("/api/brands/:id/products", (req, res) => {
   return res.status(200).json(brandProducts);
 });
 
-app.get("/api/products", (req, res) => {
-  res.status(200).json(products);
-});
 
 app.post("/api/login", (req, res) => {
   const { username, password } = req.body;

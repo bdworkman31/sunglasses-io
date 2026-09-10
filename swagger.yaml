@@ -18,8 +18,32 @@ securityDefinitions:
     description: "Enter the JWT in this format: Bearer <token>"
 
 paths:
+  /glassesSearch:
+    get:
+      tags:
+        - "Products"
+      summary: "Search for glasses by name"
+      description: "Returns a product whose name exactly matches the supplied search query."
+      parameters:
+        - name: name
+          in: query
+          required: true
+          type: string
+          description: "Exact name of the glasses"
+      responses:
+        200:
+          description: "Matching glasses product"
+          schema:
+            $ref: "#/definitions/Product"
+        404:
+          description: "Glasses not found"
+          schema:
+            $ref: "#/definitions/Error"
+
   /brands:
     get:
+      tags:
+        - "Brands"
       summary: "Get all brands"
       responses:
         200:
@@ -31,6 +55,9 @@ paths:
 
   /brands/{id}/products:
     get:
+      tags:
+        - "Brands"
+        - "Products"
       summary: "Get products for a specific brand"
       parameters:
         - name: id
@@ -46,85 +73,73 @@ paths:
             items:
               $ref: "#/definitions/Product"
         404:
-          description: "Brand or products not found"
-          schema:
-            $ref: "#/definitions/Error"
-
-  /glassesSearch:
-    get:
-      summary: "Search for glasses by name"
-      parameters:
-        - name: name
-          in: query
-          required: true
-          type: string
-          description: "Exact product name to search for"
-      responses:
-        200:
-          description: "Matching glasses found"
-          schema:
-            $ref: "#/definitions/Product"
-        404:
-          description: "Glasses not found"
+          description: "Brand not found"
           schema:
             $ref: "#/definitions/Error"
 
   /login:
     post:
+      tags:
+        - "Authentication"
       summary: "Log in with a username and password"
       parameters:
-        - name: user
+        - name: credentials
           in: body
           required: true
+          description: "User login credentials"
           schema:
             $ref: "#/definitions/LoginRequest"
       responses:
         200:
-          description: "Successfully logged in"
+          description: "Authentication successful"
           schema:
             $ref: "#/definitions/LoginResponse"
         401:
-          description: "User not found or password is incorrect"
+          description: "User not found or incorrect password"
           schema:
             $ref: "#/definitions/Error"
 
-  /cart:
+  /me/cart:
     get:
-      summary: "Get all items in the cart"
+      tags:
+        - "Cart"
+      summary: "Get the current user's cart"
       security:
         - BearerAuth: []
       responses:
         200:
-          description: "A list of cart items"
+          description: "The current cart"
           schema:
             type: array
             items:
               $ref: "#/definitions/CartItem"
         401:
-          description: "Authentication failed"
+          description: "User authentication failed"
           schema:
             $ref: "#/definitions/Error"
 
-  /me/cart:
     post:
-      summary: "Add an item to the cart"
+      tags:
+        - "Cart"
+      summary: "Add a product to the cart"
       security:
         - BearerAuth: []
       parameters:
         - name: cartItem
           in: body
           required: true
+          description: "Product and quantity to add"
           schema:
             $ref: "#/definitions/CartItem"
       responses:
         200:
-          description: "Product successfully added to the cart"
+          description: "Product added to the cart"
           schema:
             type: array
             items:
               $ref: "#/definitions/CartItem"
         401:
-          description: "Authentication failed"
+          description: "User authentication failed"
           schema:
             $ref: "#/definitions/Error"
         404:
@@ -132,31 +147,34 @@ paths:
           schema:
             $ref: "#/definitions/Error"
 
-  /cart/productQuantity/{id}:
-    put:
-      summary: "Update the quantity of a cart item"
+  /me/cart/{productId}:
+    post:
+      tags:
+        - "Cart"
+      summary: "Update a product's quantity in the cart"
       security:
         - BearerAuth: []
       parameters:
-        - name: id
+        - name: productId
           in: path
           required: true
           type: integer
-          description: "Product ID of the cart item"
-        - name: body
+          description: "ID of the product in the cart"
+        - name: quantity
           in: body
           required: true
+          description: "New product quantity"
           schema:
-            $ref: "#/definitions/QuantityUpdate"
+            $ref: "#/definitions/QuantityRequest"
       responses:
         200:
-          description: "Cart quantity successfully updated"
+          description: "Product quantity updated"
           schema:
             type: array
             items:
               $ref: "#/definitions/CartItem"
         401:
-          description: "Authentication failed"
+          description: "User authentication failed"
           schema:
             $ref: "#/definitions/Error"
         404:
@@ -164,26 +182,27 @@ paths:
           schema:
             $ref: "#/definitions/Error"
 
-  /cart/delete/{id}:
     delete:
-      summary: "Delete an item from the cart"
+      tags:
+        - "Cart"
+      summary: "Delete a product from the cart"
       security:
         - BearerAuth: []
       parameters:
-        - name: id
+        - name: productId
           in: path
           required: true
           type: integer
-          description: "Product ID of the cart item"
+          description: "ID of the product to remove"
       responses:
         200:
-          description: "Item successfully deleted from the cart"
+          description: "Product removed from the cart"
           schema:
             type: array
             items:
               $ref: "#/definitions/CartItem"
         401:
-          description: "Authentication failed"
+          description: "User authentication failed"
           schema:
             $ref: "#/definitions/Error"
         404:
@@ -193,27 +212,29 @@ paths:
 
   /subscribe:
     post:
+      tags:
+        - "Subscriptions"
       summary: "Subscribe an email address"
       parameters:
-        - name: subscriber
+        - name: subscription
           in: body
           required: true
+          description: "Email address to subscribe"
           schema:
             $ref: "#/definitions/SubscriptionRequest"
       responses:
         200:
-          description: "Email successfully subscribed"
+          description: "Updated list of subscribed email addresses"
           schema:
             type: array
             items:
               type: string
-        400:
-          description: "Invalid or missing email address"
-          schema:
-            $ref: "#/definitions/Error"
+              format: email
 
   /articles:
     get:
+      tags:
+        - "Articles"
       summary: "Get all articles"
       responses:
         200:
@@ -222,14 +243,12 @@ paths:
             type: array
             items:
               $ref: "#/definitions/Article"
-        404:
-          description: "Articles not found"
-          schema:
-            $ref: "#/definitions/Error"
 
   /articles/{id}:
     get:
-      summary: "Get an article by ID"
+      tags:
+        - "Articles"
+      summary: "Get an article's content by ID"
       parameters:
         - name: id
           in: path
@@ -238,9 +257,9 @@ paths:
           description: "Article ID"
       responses:
         200:
-          description: "Article successfully found"
+          description: "The requested article content"
           schema:
-            $ref: "#/definitions/Article"
+            type: string
         404:
           description: "Article not found"
           schema:
@@ -252,42 +271,27 @@ definitions:
     properties:
       id:
         type: integer
+        example: 1
       name:
         type: string
+        example: "Ray-Ban"
 
   Product:
     type: object
     properties:
       id:
         type: integer
-      brandId:
-        type: integer
+        example: 1
       name:
         type: string
+        example: "Superglasses"
       price:
         type: number
         format: float
-
-  CartItem:
-    type: object
-    required:
-      - productId
-      - quantity
-    properties:
-      productId:
+        example: 150
+      brandId:
         type: integer
-      quantity:
-        type: integer
-        minimum: 1
-
-  QuantityUpdate:
-    type: object
-    required:
-      - quantity
-    properties:
-      quantity:
-        type: integer
-        minimum: 1
+        example: 1
 
   LoginRequest:
     type: object
@@ -297,9 +301,11 @@ definitions:
     properties:
       username:
         type: string
+        example: "ben"
       password:
         type: string
         format: password
+        example: "password123"
 
   LoginResponse:
     type: object
@@ -309,6 +315,31 @@ definitions:
         example: "Auth successful"
       token:
         type: string
+        description: "JWT used to authenticate protected endpoints"
+
+  CartItem:
+    type: object
+    required:
+      - productId
+      - quantity
+    properties:
+      productId:
+        type: integer
+        example: 1
+      quantity:
+        type: integer
+        minimum: 1
+        example: 2
+
+  QuantityRequest:
+    type: object
+    required:
+      - quantity
+    properties:
+      quantity:
+        type: integer
+        minimum: 1
+        example: 5
 
   SubscriptionRequest:
     type: object
@@ -318,19 +349,24 @@ definitions:
       email:
         type: string
         format: email
+        example: "ben@example.com"
 
   Article:
     type: object
     properties:
       id:
         type: integer
+        example: 1
       title:
         type: string
+        example: "How to Choose Sunglasses"
       content:
         type: string
+        example: "Article content goes here."
 
   Error:
     type: object
     properties:
       message:
         type: string
+        example: "Resource not found"
